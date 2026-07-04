@@ -46,6 +46,12 @@ export async function listByTag(tag: string): Promise<CloudImage[]> {
 
 /** Build a delivery URL with auto format/quality and an optional width. */
 export function cldUrl(img: CloudImage, width = 1280): string {
-  const transforms = `f_auto,q_auto,c_fill,w_${width}`
-  return `https://res.cloudinary.com/${CLOUD}/image/upload/${transforms}/v${img.version}/${img.publicId}.${img.format}`
+  const transforms = `f_auto,q_auto,w_${width}`
+  // Public IDs can contain spaces/special chars (e.g. "Graphic Design/…");
+  // encode each path segment while keeping the "/" separators intact.
+  const path = img.publicId
+    .split('/')
+    .map(encodeURIComponent)
+    .join('/')
+  return `https://res.cloudinary.com/${CLOUD}/image/upload/${transforms}/v${img.version}/${path}.${img.format}`
 }
