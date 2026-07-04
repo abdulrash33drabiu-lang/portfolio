@@ -1,32 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
 import { projects, type Project } from '../data/projects'
 import { listByTag, cldUrl } from '../lib/cloudinary'
 import LiveProjectButton from '../components/LiveProjectButton'
+import ProjectGallery from '../components/ProjectGallery'
 
 const RADIUS = 'rounded-[40px] sm:rounded-[50px] md:rounded-[60px]'
 const RADIUS_TOP = 'rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px]'
+const PREVIEW_COUNT = 3
 
 /**
- * Resolve a project's three card images. Pulls tagged images from Cloudinary
+ * Resolve ALL of a project's images. Pulls every tagged image from Cloudinary
  * when available, otherwise keeps the static fallback so the card is never
- * empty. Any Cloudinary images beyond the first three are ignored here (the
- * card layout has exactly three slots).
+ * empty.
  */
-function useCardImages(project: Project): [string, string, string] {
-  const [images, setImages] = useState<[string, string, string]>(project.images)
+function useProjectImages(project: Project): string[] {
+  const [images, setImages] = useState<string[]>(project.images)
 
   useEffect(() => {
     let active = true
     listByTag(project.tag).then((imgs) => {
       if (!active || imgs.length === 0) return
-      const urls = imgs.map((img) => cldUrl(img))
-      // pad up to three slots by reusing what we have
-      setImages([
-        urls[0],
-        urls[1] ?? urls[0],
-        urls[2] ?? urls[1] ?? urls[0],
-      ])
+      setImages(imgs.map((img) => cldUrl(img, 1400)))
     })
     return () => {
       active = false
@@ -41,21 +36,24 @@ type CardProps = {
   index: number
   total: number
   progress: ReturnType<typeof useScroll>['scrollYProgress']
+  onOpenGallery: (project: Project, images: string[]) => void
 }
 
-function Card({ project, index, total, progress }: CardProps) {
+function Card({ project, index, total, progress, onOpenGallery }: CardProps) {
   const targetScale = 1 - (total - 1 - index) * 0.03
   const scale = useTransform(progress, [index / total, 1], [1, targetScale])
-  const [c1, c2, c3] = useCardImages(project)
+  const images = useProjectImages(project)
+  const preview = images.slice(0, PREVIEW_COUNT)
+  const remaining = images.length - preview.length
 
   return (
-    <div className="sticky top-24 md:top-32 flex h-[85vh] items-center justify-center">
+    <div className="sticky top-24 md:top-28 flex min-h-[85vh] items-start justify-center py-4">
       <motion.div
         style={{ scale, top: `${index * 28}px` }}
         className={`relative w-full max-w-6xl border-2 border-mist bg-ink p-4 sm:p-6 md:p-8 ${RADIUS}`}
       >
         {/* Top row */}
-        <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
+        <div className="mb-5 flex items-center justify-between gap-4 md:mb-7">
           <div className="flex items-center gap-4 sm:gap-6 md:gap-8">
             <span
               className="hero-heading font-black leading-none"
@@ -76,35 +74,41 @@ function Card({ project, index, total, progress }: CardProps) {
             </div>
           </div>
           <div className="hidden sm:block">
-            <LiveProjectButton />
+            <LiveProjectButton onClick={() => onOpenGallery(project, images)} />
           </div>
         </div>
 
-        {/* Image grid */}
-        <div className="grid grid-cols-[40%_60%] gap-3 sm:gap-4">
-          <div className="flex flex-col gap-3 sm:gap-4">
-            <img
-              src={c1}
-              alt={`${project.name} preview 1`}
-              loading="lazy"
-              className={`w-full object-cover ${RADIUS}`}
-              style={{ height: 'clamp(130px, 16vw, 230px)' }}
-            />
-            <img
-              src={c2}
-              alt={`${project.name} preview 2`}
-              loading="lazy"
-              className={`w-full object-cover ${RADIUS}`}
-              style={{ height: 'clamp(160px, 22vw, 340px)' }}
-            />
-          </div>
-          <img
-            src={c3}
-            alt={`${project.name} preview 3`}
-            loading="lazy"
-            className={`h-full w-full object-cover ${RADIUS}`}
-          />
+        {/* Preview — natural aspect ratio, no cropping */}
+        <div className="columns-2 gap-3 sm:gap-4 md:columns-3">
+          {preview.map((src, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onOpenGallery(project, images)}
+              className="mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-mist/10 transition-transform duration-200 hover:scale-[1.01] sm:mb-4"
+            >
+              <img
+                src={src}
+                alt={`${project.name} preview ${i + 1}`}
+                loading="lazy"
+                className="block h-auto w-full"
+              />
+            </button>
+          ))}
         </div>
+
+        {/* View more */}
+        {remaining > 0 && (
+          <div className="mt-2 flex justify-center">
+            <button
+              type="button"
+              onClick={() => onOpenGallery(project, images)}
+              className="rounded-full border-2 border-mist px-8 py-3 text-sm font-medium uppercase tracking-widest text-mist transition-colors duration-200 hover:bg-mist/10 sm:text-base"
+            >
+              View More ({remaining} more)
+            </button>
+          </div>
+        )}
       </motion.div>
     </div>
   )
@@ -116,6 +120,11 @@ export default function ProjectsSection() {
     target: containerRef,
     offset: ['start start', 'end end'],
   })
+
+  const [gallery, setGallery] = useState<{
+    project: Project
+    images: string[]
+  } | null>(null)
 
   return (
     <section
@@ -137,9 +146,21 @@ export default function ProjectsSection() {
             index={index}
             total={projects.length}
             progress={scrollYProgress}
+            onOpenGallery={(p, images) => setGallery({ project: p, images })}
           />
         ))}
       </div>
+
+      <AnimatePresence>
+        {gallery && (
+          <ProjectGallery
+            name={gallery.project.name}
+            category={gallery.project.category}
+            images={gallery.images}
+            onClose={() => setGallery(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   )
 }
