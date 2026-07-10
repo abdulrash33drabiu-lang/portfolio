@@ -29,3 +29,17 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
+
+/* Very subtle float for the hero portrait */
+.hero-float {
+  animation: heroFloat 6s ease-in-out infinite;
+}
+@keyframes heroFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

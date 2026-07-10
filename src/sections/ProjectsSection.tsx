@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
-import { projects, type Project } from '../data/projects'
+import { Play } from 'lucide-react'
+import { projects, type Project, type MediaItem } from '../data/projects'
 import { listByTag, cldUrl } from '../lib/cloudinary'
 import LiveProjectButton from '../components/LiveProjectButton'
 import ProjectGallery from '../components/ProjectGallery'
@@ -9,12 +10,16 @@ const RADIUS = 'rounded-[40px] sm:rounded-[50px] md:rounded-[60px]'
 const RADIUS_TOP = 'rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px]'
 const PREVIEW_COUNT = 3
 
+/** Cloudinary video URL -> first-frame JPG poster. */
+function videoPoster(url: string): string {
+  return url.replace('/upload/', '/upload/so_0/').replace(/\.mp4$/i, '.jpg')
+}
+
 /**
- * Resolve ALL of a project's images. Pulls every tagged image from Cloudinary
- * when available, otherwise keeps the static fallback so the card is never
- * empty.
+ * Resolve ALL of a project's media: its videos first, then every image tagged
+ * on Cloudinary (falling back to the static images until those load).
  */
-function useProjectImages(project: Project): string[] {
+function useProjectMedia(project: Project): MediaItem[] {
   const [images, setImages] = useState<string[]>(project.images)
 
   useEffect(() => {
@@ -28,7 +33,30 @@ function useProjectImages(project: Project): string[] {
     }
   }, [project.tag])
 
-  return images
+  const videos: MediaItem[] = (project.videos ?? []).map((src) => ({
+    type: 'video',
+    src,
+    poster: videoPoster(src),
+  }))
+  const pics: MediaItem[] = images.map((src) => ({ type: 'image', src }))
+  return [...videos, ...pics]
+}
+
+/** A single masonry thumbnail — image, or a video poster with a play badge. */
+function Thumb({ item, alt }: { item: MediaItem; alt: string }) {
+  if (item.type === 'video') {
+    return (
+      <div className="relative">
+        <img src={item.poster} alt={alt} loading="lazy" className="block h-auto w-full" />
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm">
+            <Play size={22} className="ml-0.5" fill="currentColor" />
+          </span>
+        </span>
+      </div>
+    )
+  }
+  return <img src={item.src} alt={alt} loading="lazy" className="block h-auto w-full" />
 }
 
 type CardProps = {
@@ -36,15 +64,15 @@ type CardProps = {
   index: number
   total: number
   progress: ReturnType<typeof useScroll>['scrollYProgress']
-  onOpenGallery: (project: Project, images: string[]) => void
+  onOpenGallery: (project: Project, media: MediaItem[]) => void
 }
 
 function Card({ project, index, total, progress, onOpenGallery }: CardProps) {
   const targetScale = 1 - (total - 1 - index) * 0.03
   const scale = useTransform(progress, [index / total, 1], [1, targetScale])
-  const images = useProjectImages(project)
-  const preview = images.slice(0, PREVIEW_COUNT)
-  const remaining = images.length - preview.length
+  const media = useProjectMedia(project)
+  const preview = media.slice(0, PREVIEW_COUNT)
+  const remaining = media.length - preview.length
 
   return (
     <div className="sticky top-24 md:top-28 flex min-h-[85vh] items-start justify-center py-4">
@@ -74,25 +102,20 @@ function Card({ project, index, total, progress, onOpenGallery }: CardProps) {
             </div>
           </div>
           <div className="hidden sm:block">
-            <LiveProjectButton onClick={() => onOpenGallery(project, images)} />
+            <LiveProjectButton onClick={() => onOpenGallery(project, media)} />
           </div>
         </div>
 
         {/* Preview — natural aspect ratio, no cropping */}
         <div className="columns-2 gap-3 sm:gap-4 md:columns-3">
-          {preview.map((src, i) => (
+          {preview.map((item, i) => (
             <button
               key={i}
               type="button"
-              onClick={() => onOpenGallery(project, images)}
+              onClick={() => onOpenGallery(project, media)}
               className="mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-mist/10 transition-transform duration-200 hover:scale-[1.01] sm:mb-4"
             >
-              <img
-                src={src}
-                alt={`${project.name} preview ${i + 1}`}
-                loading="lazy"
-                className="block h-auto w-full"
-              />
+              <Thumb item={item} alt={`${project.name} preview ${i + 1}`} />
             </button>
           ))}
         </div>
@@ -102,7 +125,7 @@ function Card({ project, index, total, progress, onOpenGallery }: CardProps) {
           <div className="mt-2 flex justify-center">
             <button
               type="button"
-              onClick={() => onOpenGallery(project, images)}
+              onClick={() => onOpenGallery(project, media)}
               className="rounded-full border-2 border-mist px-8 py-3 text-sm font-medium uppercase tracking-widest text-mist transition-colors duration-200 hover:bg-mist/10 sm:text-base"
             >
               View More ({remaining} more)
@@ -123,7 +146,7 @@ export default function ProjectsSection() {
 
   const [gallery, setGallery] = useState<{
     project: Project
-    images: string[]
+    media: MediaItem[]
   } | null>(null)
 
   return (
@@ -146,7 +169,7 @@ export default function ProjectsSection() {
             index={index}
             total={projects.length}
             progress={scrollYProgress}
-            onOpenGallery={(p, images) => setGallery({ project: p, images })}
+            onOpenGallery={(p, media) => setGallery({ project: p, media })}
           />
         ))}
       </div>
@@ -156,7 +179,7 @@ export default function ProjectsSection() {
           <ProjectGallery
             name={gallery.project.name}
             category={gallery.project.category}
-            images={gallery.images}
+            media={gallery.media}
             onClose={() => setGallery(null)}
           />
         )}

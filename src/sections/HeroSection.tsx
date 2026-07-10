@@ -4,7 +4,10 @@ import ContactButton from '../components/ContactButton'
 
 const NAV_LINKS = ['About', 'Services', 'Projects', 'Contact']
 
+// Your Cloudinary head portrait (transparent PNG). Template image is a fallback.
 const PORTRAIT_URL =
+  'https://res.cloudinary.com/fnbqnrwk/image/upload/f_auto,q_auto,w_800/v1783676533/Portrait_-_Head_pedfrq.png'
+const PORTRAIT_FALLBACK =
   'https://shrug-person-78902957.figma.site/_components/v2/d24c01ad3a56fc65e942a1f501eb73db42d7cf9a/Rectangle_40443.81459862.png'
 
 export default function HeroSection() {
@@ -31,15 +34,36 @@ export default function HeroSection() {
         ))}
       </FadeIn>
 
-      {/* Big heading */}
-      <div className="flex flex-1 items-center overflow-hidden px-6 md:px-10">
-        <FadeIn
-          as="h1"
-          delay={0.15}
-          y={40}
-          className="hero-heading w-full whitespace-nowrap font-black uppercase leading-none tracking-tight mt-6 sm:mt-4 md:-mt-5 text-[9vw] sm:text-[9.5vw] md:text-[10vw] lg:text-[11vw]"
-        >
-          Hi, i&apos;m Abdulrasheed
+      {/* Big heading — SVG text scales to fill the width, one straight line */}
+      <div className="flex flex-1 items-center px-6 md:px-10">
+        <FadeIn as="h1" delay={0.15} y={40} className="w-full">
+          <svg
+            viewBox="0 0 100 12"
+            preserveAspectRatio="xMidYMid meet"
+            className="block w-full"
+            role="img"
+            aria-label="Hi, I'm Abdulrasheed"
+          >
+            <defs>
+              <linearGradient id="heroName" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#646973" />
+                <stop offset="100%" stopColor="#bbccd7" />
+              </linearGradient>
+            </defs>
+            <text
+              x="50"
+              y="9.4"
+              textAnchor="middle"
+              textLength="100"
+              lengthAdjust="spacingAndGlyphs"
+              fontFamily="'Kanit', sans-serif"
+              fontWeight={900}
+              fontSize="9.6"
+              fill="url(#heroName)"
+            >
+              HI, I&apos;M ABDULRASHEED
+            </text>
+          </svg>
         </FadeIn>
       </div>
 
@@ -52,7 +76,7 @@ export default function HeroSection() {
           className="max-w-[160px] font-light uppercase leading-snug tracking-wide text-mist sm:max-w-[220px] md:max-w-[260px]"
           style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
         >
-          a graphic designer &amp; creative director crafting bold, print-ready visuals that stop the scroll
+          Hi, I&apos;m Abdulrasheed, a graphic designer &amp; creative director crafting bold, print-ready visuals that stop the scroll
         </FadeIn>
         <FadeIn delay={0.5} y={20}>
           <ContactButton />
@@ -71,9 +95,13 @@ export default function HeroSection() {
           >
             <img
               src={PORTRAIT_URL}
-              alt="Jack, 3D creator portrait"
+              alt="Abdulrasheed Muhammadrabiu"
               className="w-full select-none"
               draggable={false}
+              onError={(e) => {
+                const img = e.currentTarget
+                if (img.src !== PORTRAIT_FALLBACK) img.src = PORTRAIT_FALLBACK
+              }}
             />
           </Magnet>
         </FadeIn>

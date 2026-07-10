@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react'
+import { Fragment, useRef, type CSSProperties } from 'react'
 import {
   motion,
   useScroll,
@@ -37,6 +37,9 @@ function Char({ char, progress, range }: CharProps) {
 /**
  * Character-by-character scroll-reveal text. Each character fades from
  * opacity 0.2 -> 1 based on its position relative to scroll progress.
+ *
+ * Characters are grouped per word inside a `nowrap` inline-block so lines only
+ * ever break between words — never mid-word.
  */
 export default function AnimatedText({ text, className, style }: AnimatedTextProps) {
   const ref = useRef<HTMLParagraphElement>(null)
@@ -45,15 +48,26 @@ export default function AnimatedText({ text, className, style }: AnimatedTextPro
     offset: ['start 0.8', 'end 0.2'],
   })
 
-  const chars = text.split('')
+  const words = text.split(' ')
+  const totalChars = words.reduce((n, w) => n + w.length, 0)
+  let index = 0
 
   return (
     <p ref={ref} className={className} style={style}>
-      {chars.map((char, i) => {
-        const start = i / chars.length
-        const end = start + 1 / chars.length
+      {words.map((word, wi) => {
+        const chars = word.split('').map((ch) => {
+          const i = index++
+          return { ch, range: [i / totalChars, (i + 1) / totalChars] as [number, number] }
+        })
         return (
-          <Char key={i} char={char} progress={scrollYProgress} range={[start, end]} />
+          <Fragment key={wi}>
+            <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+              {chars.map((c, ci) => (
+                <Char key={ci} char={c.ch} progress={scrollYProgress} range={c.range} />
+              ))}
+            </span>
+            {wi < words.length - 1 ? ' ' : null}
+          </Fragment>
         )
       })}
     </p>

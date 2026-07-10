@@ -1,3 +1,5 @@
+export type MediaItem = { type: 'image' | 'video'; src: string; poster?: string }
+
 export type Project = {
   number: string
   category: string
@@ -5,7 +7,9 @@ export type Project = {
   /** Cloudinary tag — every image you upload with this tag shows up here. */
   tag: string
   /** Fallback images used until Cloudinary is configured/populated. */
-  images: [string, string, string] // [col1-top, col1-bottom, col2-tall]
+  images: string[]
+  /** Optional Cloudinary video URLs (shown before images). */
+  videos?: string[]
 }
 
 export const projects: Project[] = [
@@ -40,6 +44,28 @@ export const projects: Project[] = [
       'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055759_963cfb0b-4bd1-4b0f-9d0a-09bd6cf95b2f.png&w=1280&q=85',
       'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_060108_438f781a-9846-4dcc-89ab-c4e6cb830f5b.png&w=1280&q=85',
       'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055818_9d062121-ad7e-46b9-999a-1a6a692ef1ee.png&w=1280&q=85',
+    ],
+  },
+  {
+    number: '04',
+    category: 'AI Video',
+    name: 'AI Videos',
+    tag: 'ai-videos',
+    videos: [
+      'https://res.cloudinary.com/fnbqnrwk/video/upload/v1783679879/Mrs_Ify_v2.5_km4zcy.mp4',
+      'https://res.cloudinary.com/fnbqnrwk/video/upload/v1783679384/VPKIDS_-_UYO_dsd8fa.mp4',
+    ],
+    images: [],
+  },
+  {
+    number: '05',
+    category: 'Web Design',
+    name: 'Motion-driven Web Design',
+    tag: 'motion-web',
+    images: [
+      'https://motionsites.ai/assets/hero-designpro-preview-D8c5_een.gif',
+      'https://motionsites.ai/assets/hero-xportfolio-preview-D4A8maiC.gif',
+      'https://motionsites.ai/assets/hero-orbit-web3-preview-BXt4OttD.gif',
     ],
   },
 ]

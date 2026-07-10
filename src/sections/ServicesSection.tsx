@@ -43,6 +43,12 @@ const SERVICES: Service[] = [
     description:
       'Accelerate projects with AI-generated concept art, moodboards, and prompt visuals.',
   },
+  {
+    number: '07',
+    name: 'Motion-driven Web Design',
+    description:
+      'Modern, interactive websites brought to life with scroll-driven animation and micro-interactions — digital experiences that feel as dynamic as they look.',
+  },
 ]
 
 export default function ServicesSection() {
