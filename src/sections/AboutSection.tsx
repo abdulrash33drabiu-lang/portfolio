@@ -13,7 +13,7 @@ const DECOR = {
 }
 
 const ABOUT_TEXT =
-  "I'm Abdulrasheed, a graphic designer and creative director based in Lagos, Nigeria, with 5+ years leading design departments across three agencies. From political campaigns to event flyers, packaging to large-format print, I bring commercial intent and AI-powered ideation to every visual. Let's build something unforgettable together!"
+  "I'm Abdulrasheed, a product and brand designer based in Lagos, Nigeria, with 6 years leading design teams — in-house, agency-side, and running my own studio. From brand identity systems to interfaces and motion-driven web, I bring commercial intent and craft to every screen and every surface. Let's build something unforgettable together!"
 
 export default function AboutSection() {
   return (

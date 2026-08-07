@@ -95,7 +95,7 @@ export default function HeroSection() {
           >
             <img
               src={PORTRAIT_URL}
-              alt="Abdulrasheed Muhammadrabiu"
+              alt="Abdulrasheed M. Rabiu"
               className="w-full select-none"
               draggable={false}
               onError={(e) => {

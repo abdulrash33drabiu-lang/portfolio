@@ -29,8 +29,8 @@ const LINKS: Link[] = [
   {
     icon: Linkedin,
     label: 'LinkedIn',
-    value: 'abdulrasheed-rabiu',
-    href: 'https://www.linkedin.com/in/abdulrasheed-rabiu-839839246',
+    value: 'abdulrasheed-m-rabiu',
+    href: 'https://www.linkedin.com/in/abdulrasheed-m-rabiu',
   },
   {
     icon: Instagram,
@@ -105,7 +105,7 @@ export default function ContactSection() {
         </div>
 
         <p className="pt-6 text-center text-sm font-light text-mist/40">
-          © {new Date().getFullYear()} Abdulrasheed Muhammadrabiu · PrintPulse
+          © {new Date().getFullYear()} Abdulrasheed M. Rabiu · PrintPulse
           Creativez · Lagos, Nigeria
         </p>
       </div>
